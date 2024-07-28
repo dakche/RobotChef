@@ -287,7 +287,7 @@ def run(
                     cv2.resizeWindow(str(p), im0.shape[1], im0.shape[0])
 
                 # NEW:
-                fpsVid = 1.0 / dt
+                fpsVid = 1.0 / dt[1].dt
                 im0 = cv2.putText(image, f'FPS: {fpsVid:.2f}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
                 cv2.imshow(str(p), im0)

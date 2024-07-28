@@ -79,7 +79,9 @@ class Conv(nn.Module):
         super().__init__()
         self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
         self.bn = nn.BatchNorm2d(c2)
-        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+        #self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+        # NEW: Changed for Vitis AI
+        self.act = nn.LeakyReLU(26/256, inplace=True)
 
     def forward(self, x):
         """Applies a convolution followed by batch normalization and an activation function to the input tensor `x`."""
@@ -188,7 +190,8 @@ class BottleneckCSP(nn.Module):
         self.cv3 = nn.Conv2d(c_, c_, 1, 1, bias=False)
         self.cv4 = Conv(2 * c_, c2, 1, 1)
         self.bn = nn.BatchNorm2d(2 * c_)  # applied to cat(cv2, cv3)
-        self.act = nn.SiLU()
+        # NEW: changed from SiLU to LeakyRelu for Vitis
+        self.act = nn.LeakyReLU(26/256, inplace=True)
         self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, e=1.0) for _ in range(n)))
 
     def forward(self, x):

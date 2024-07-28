@@ -169,6 +169,9 @@ def run(
     stride, names, pt = model.stride, model.names, model.pt
     imgsz = check_img_size(imgsz, s=stride)  # check image size
 
+    # NEW
+    model.conf = 0.6
+
     # Dataloader
     bs = 1  # batch_size
     if webcam:

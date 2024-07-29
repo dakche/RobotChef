@@ -1,0 +1,12 @@
+names:
+- Egg
+nc: 1
+roboflow:
+  license: CC BY 4.0
+  project: egg-detector-jhu1m
+  url: https://universe.roboflow.com/robot-arm-pj9te/egg-detector-jhu1m/dataset/4
+  version: 4
+  workspace: robot-arm-pj9te
+test: ../test/images
+train: Egg-Detector-4/train/images
+val: Egg-Detector-4/valid/images

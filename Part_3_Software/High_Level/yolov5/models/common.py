@@ -79,9 +79,7 @@ class Conv(nn.Module):
         super().__init__()
         self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
         self.bn = nn.BatchNorm2d(c2)
-        #self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
-        # NEW: Changed for Vitis AI
-        self.act = nn.LeakyReLU(26/256, inplace=True)
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
     def forward(self, x):
         """Applies a convolution followed by batch normalization and an activation function to the input tensor `x`."""
@@ -190,8 +188,7 @@ class BottleneckCSP(nn.Module):
         self.cv3 = nn.Conv2d(c_, c_, 1, 1, bias=False)
         self.cv4 = Conv(2 * c_, c2, 1, 1)
         self.bn = nn.BatchNorm2d(2 * c_)  # applied to cat(cv2, cv3)
-        # NEW: changed from SiLU to LeakyRelu for Vitis
-        self.act = nn.LeakyReLU(26/256, inplace=True)
+        self.act = nn.SiLU()
         self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, e=1.0) for _ in range(n)))
 
     def forward(self, x):
@@ -447,7 +444,7 @@ class DetectMultiBackend(nn.Module):
         #   ONNX Runtime:                   *.onnx
         #   ONNX OpenCV DNN:                *.onnx --dnn
         #   OpenVINO:                       *_openvino_model
-        #   CoreML:                         *.mlmodel
+        #   CoreML:                         *.mlpackage
         #   TensorRT:                       *.engine
         #   TensorFlow SavedModel:          *_saved_model
         #   TensorFlow GraphDef:            *.pb
@@ -782,8 +779,8 @@ class DetectMultiBackend(nn.Module):
 
 class AutoShape(nn.Module):
     # YOLOv5 input-robust model wrapper for passing cv2/np/PIL/torch inputs. Includes preprocessing, inference and NMS
-    conf = 0.5  # NMS confidence threshold
-    iou = 0.5  # NMS IoU threshold
+    conf = 0.25  # NMS confidence threshold
+    iou = 0.45  # NMS IoU threshold
     agnostic = False  # NMS class-agnostic
     multi_label = False  # NMS multiple labels per box
     classes = None  # (optional list) filter by class, i.e. = [0, 15, 16] for COCO persons, cats and dogs

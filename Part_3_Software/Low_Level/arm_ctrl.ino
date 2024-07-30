@@ -156,6 +156,12 @@ void setup() {
   // Low-pass the raw values and set as current position
   getFilteredPos();
 
+  // Set setpoint to current angle to prevent arm from moving
+  s_setpoint = s_curr;
+  e_setpoint = e_curr;
+  x_setpoint = x_curr;
+  y_setpoint = y_curr;
+
   // Set motor power limits
   s_PID.SetOutputLimits(-4095, 4095);
   e_PID.SetOutputLimits(-4095, 4095);
@@ -184,7 +190,7 @@ void loop() {
     int temp5, temp6;
     
     // Parse the data
-    sscanf(input, "%3.2lf; %3.2lf; %3.2lf; %3.2lf; %d; %d", &temp1, &temp2, &temp3, &temp4, &temp5, &temp6);
+    sscanf(input, "%lf; %lf; %lf; %lf; %d; %d", &temp1, &temp2, &temp3, &temp4, &temp5, &temp6);
     
     // Write data to control variables
     s_angle = temp1;

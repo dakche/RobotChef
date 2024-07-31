@@ -185,20 +185,25 @@ void loop() {
     char input[64];
     data.toCharArray(input, data.length()+1);
 
-    // Temp variables for sscanf
-    double temp1, temp2, temp3, temp4;
-    int temp5, temp6;
-    
-    // Parse the data
-    sscanf(input, "%lf; %lf; %lf; %lf; %d; %d", &temp1, &temp2, &temp3, &temp4, &temp5, &temp6);
-    
-    // Write data to control variables
-    s_angle = temp1;
-    e_angle = temp2;
-    x_angle = temp3;
-    y_angle = temp4;
-    tt_ctrl = temp5;
-    servo_ctrl = temp6;
+    if (data == 'p') {
+      decodeAngles();
+    }
+    else {
+      // Temp variables for sscanf
+      double temp1, temp2, temp3, temp4;
+      int temp5, temp6;
+      
+      // Parse the data
+      sscanf(input, "%lf; %lf; %lf; %lf; %d; %d", &temp1, &temp2, &temp3, &temp4, &temp5, &temp6);
+      
+      // Write data to control variables
+      s_angle = temp1;
+      e_angle = temp2;
+      x_angle = temp3;
+      y_angle = temp4;
+      tt_ctrl = temp5;
+      servo_ctrl = temp6;
+    }
   }
 
   s_setpoint = (3.7391*s_angle) + 274.16;
@@ -309,4 +314,22 @@ void drive(int motor, int val) {
     analogWrite(right, 0);
     analogWrite(left, 0);
   }
+}
+
+// Converts potentiometer values to angle values
+void decodeAngles() {
+  double s_real, e_real, x_real, y_real;
+
+  s_real = (s_curr - 274.16)/3.7391;
+  e_real = (e_curr - 188.553)/3.7391;
+  x_real = (x_curr - 478)/3.78889;
+  y_real = (y_curr + 209.333)/3.7444;
+
+  Serial.print(s_real);
+  Serial.print("; ");
+  Serial.print(e_real);
+  Serial.print("; ");
+  Serial.print(x_real);
+  Serial.print("; ");
+  Serial.println(y_real);
 }

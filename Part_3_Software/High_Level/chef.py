@@ -13,8 +13,11 @@ for p in ports:
 # Connect to that port
 arm = serial.Serial(port = p.device, baudrate = 115200, timeout = .1)
 
+arm.write(b"p")
+resp = arm.readline().decode('utf-8').rstrip("; ")
+print(resp)
 
 
-command = f';;;;;\n'
+# command = f';;;;;\n'
 
-arm.write(command.encode('ascii'))
+# arm.write(command.encode('ascii'))

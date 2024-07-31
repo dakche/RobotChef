@@ -72,9 +72,7 @@ def autopad(k, p=None, d=1):
 
 class Conv(nn.Module):
     # Standard convolution with args(ch_in, ch_out, kernel, stride, padding, groups, dilation, activation)
-    # default_act = nn.SiLU()  # default activation
-    # NEW: Modded to work with Vitis-AI
-    default_act = nn.LeakyReLU(26/256, inplace=True)
+    default_act = nn.SiLU()  # default activation
 
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
         """Initializes a standard convolution layer with optional batch normalization and activation."""
@@ -190,10 +188,7 @@ class BottleneckCSP(nn.Module):
         self.cv3 = nn.Conv2d(c_, c_, 1, 1, bias=False)
         self.cv4 = Conv(2 * c_, c2, 1, 1)
         self.bn = nn.BatchNorm2d(2 * c_)  # applied to cat(cv2, cv3)
-
-        # self.act = nn.SiLU()
-        # Modded to work with Vitis-AI
-        self.act = nn.LeakyReLU(26/256, inplace=True)
+        self.act = nn.SiLU()
         self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, e=1.0) for _ in range(n)))
 
     def forward(self, x):

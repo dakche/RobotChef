@@ -29,7 +29,7 @@ resp = arm.readline().decode('utf-8').rstrip(";\r\n").split(";")
 # Convert strings to floats
 curr_angles = np.array(resp).astype(float).tolist()
 
-# 
+# Work in progress...
 
 # Inverse Kinematics
 

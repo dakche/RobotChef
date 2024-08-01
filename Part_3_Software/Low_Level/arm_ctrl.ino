@@ -27,9 +27,9 @@
 int buf_ptr = 0;
 
 // Shoulder Motor parameters
-#define S_LPWM 2          // Teensy Pin controlling LPWM
-#define S_RPWM 3          // Teensy Pin controlling RPWM
-#define S_FB A6           // Teensy Analog Pin reading potentiometer
+#define S_LPWM 2  // Teensy Pin controlling LPWM
+#define S_RPWM 3  // Teensy Pin controlling RPWM
+#define S_FB A6   // Teensy Analog Pin reading potentiometer
 // Shoulder Motor PID parameters
 double s_setpoint, s_curr, s_out;
 double s_kp = 50.00;
@@ -47,7 +47,7 @@ int s_raw_fb[BUF_SIZE];
 #define E_FB A7
 // Elbow Motor PID parameters
 double e_setpoint, e_curr, e_out;
-double e_kp = 35.00;
+double e_kp = 40.00;
 double e_ki = 1.00;
 double e_kd = 0.00;
 PID e_PID(&e_curr, &e_out, &e_setpoint, e_kp, e_ki, e_kd, REVERSE);
@@ -67,7 +67,7 @@ double x_ki = 0.30;
 double x_kd = 0.80;
 PID x_PID(&x_curr, &x_out, &x_setpoint, x_kp, x_ki, x_kd, DIRECT);
 // Target angle
-double x_angle; 
+double x_angle;
 // Ring Buffer for potentiometer data
 int x_raw_fb[BUF_SIZE];
 
@@ -79,7 +79,7 @@ int x_raw_fb[BUF_SIZE];
 double y_setpoint, y_curr, y_out;
 double y_kp = 12.50;
 double y_ki = 0.30;
-double y_kd = 0.80; 
+double y_kd = 0.80;
 PID y_PID(&y_curr, &y_out, &y_setpoint, y_kp, y_ki, y_kd, DIRECT);
 // Target angle
 double y_angle;
@@ -91,17 +91,17 @@ int y_raw_fb[BUF_SIZE];
 #define R_RPWM 11
 
 // Servo parameters
-#define CLAW 12           // Teensy Pin controlling Servo
-#define CLAW_MIN 1200     // Minimum value for servo (fully closed)
-#define CLAW_MAX 2100     // Maximum value for servo (fully open)
-Servo claw;               // Constructor for Servo library
+#define CLAW 12        // Teensy Pin controlling Servo
+#define CLAW_MIN 1200  // Minimum value for servo (fully closed)
+#define CLAW_MAX 2100  // Maximum value for servo (fully open)
+Servo claw;            // Constructor for Servo library
 
 // Temp variables used to store the L_PWM and R_PWM pins of the H-bridge of interest
 int left;
 int right;
 
 // Sets the minimum motor value (to get rid of the annoying high-pitched whining at low throttles)
-int epsilon = 300; 
+int epsilon = 300;
 
 // Turntable control command from KR260
 int tt_ctrl = 0;
@@ -110,6 +110,7 @@ int tt_ctrl = 0;
 int servo_ctrl = 2100;
 
 void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
   // Let's take advantage of the Teensy's 12-bit PWM resolution
   analogWriteResolution(12);
 
@@ -173,29 +174,32 @@ void setup() {
   e_PID.SetMode(AUTOMATIC);
   x_PID.SetMode(AUTOMATIC);
   y_PID.SetMode(AUTOMATIC);
+
 }
 
 void loop() {
   // Get new position commands from Serial and update setpoints -------------------------
-  if(Serial.available() > 0) {
+  if (Serial.available() > 0) {
+
     // Read input until newline character
     String data = Serial.readStringUntil('\n');
 
     // Drop data into temp buffer
     char input[64];
-    data.toCharArray(input, data.length()+1);
+    data.toCharArray(input, data.length() + 1);
 
+    // If the character p is read, the KR260 is polling current position
+    // So return angles of all parts of the robot
     if (data == 'p') {
       decodeAngles();
-    }
-    else {
+    } else {
       // Temp variables for sscanf
       double temp1, temp2, temp3, temp4;
       int temp5, temp6;
-      
+
       // Parse the data
       sscanf(input, "%lf; %lf; %lf; %lf; %d; %d", &temp1, &temp2, &temp3, &temp4, &temp5, &temp6);
-      
+
       // Write data to control variables
       s_angle = temp1;
       e_angle = temp2;
@@ -203,25 +207,25 @@ void loop() {
       y_angle = temp4;
       tt_ctrl = temp5;
       servo_ctrl = temp6;
+
+      // Convert angles to analog values
+      s_setpoint = (3.7391 * s_angle) + 274.16;
+      e_setpoint = (3.7391 * e_angle) + 188.553;
+      x_setpoint = (3.78889 * x_angle) + 478;
+      y_setpoint = (3.74444 * y_angle) - 209.333;
     }
   }
-
-  s_setpoint = (3.7391*s_angle) + 274.16;
-  e_setpoint = (3.7391*e_angle) + 188.553;
-  x_setpoint = (3.78889*x_angle) + 478;
-  y_setpoint = (3.74444*y_angle) - 209.333;
 
   // Update current positions -----------------------------------------------------------
   s_raw_fb[buf_ptr] = analogRead(S_FB);
   e_raw_fb[buf_ptr] = analogRead(E_FB);
   x_raw_fb[buf_ptr] = analogRead(X_FB);
   y_raw_fb[buf_ptr] = analogRead(Y_FB);
-  
+
   // Roll pointer back around if buffer is full
   if (buf_ptr < BUF_SIZE) {
     ++buf_ptr;
-  }
-  else {
+  } else {
     buf_ptr = 0;
   }
 
@@ -233,7 +237,7 @@ void loop() {
   e_PID.Compute();
   x_PID.Compute();
   y_PID.Compute();
-  
+
   // Drive motors -----------------------------------------------------------------------
   drive(1, (int)s_out);
   drive(2, (int)e_out);
@@ -241,6 +245,7 @@ void loop() {
   drive(4, (int)y_out);
   drive(5, tt_ctrl);
   drive(6, servo_ctrl);
+
 }
 
 // Performs the low-pass filtering
@@ -260,10 +265,10 @@ void getFilteredPos() {
   }
 
   // Divide by number of elements, and set as current values
-  s_curr = ((double)s_temp)/((double)BUF_SIZE);
-  e_curr = ((double)e_temp)/((double)BUF_SIZE);
-  x_curr = ((double)x_temp)/((double)BUF_SIZE);
-  y_curr = ((double)y_temp)/((double)BUF_SIZE);
+  s_curr = ((double)s_temp) / ((double)BUF_SIZE);
+  e_curr = ((double)e_temp) / ((double)BUF_SIZE);
+  x_curr = ((double)x_temp) / ((double)BUF_SIZE);
+  y_curr = ((double)y_temp) / ((double)BUF_SIZE);
 }
 
 // Drives the motors by sending commands to the associated H-bridges
@@ -305,12 +310,10 @@ void drive(int motor, int val) {
   if (val > epsilon) {
     analogWrite(right, 0);
     analogWrite(left, val);
-  }
-  else if (val < -epsilon) {
+  } else if (val < -epsilon) {
     analogWrite(left, 0);
     analogWrite(right, abs(val));
-  }
-  else {
+  } else {
     analogWrite(right, 0);
     analogWrite(left, 0);
   }
@@ -320,16 +323,18 @@ void drive(int motor, int val) {
 void decodeAngles() {
   double s_real, e_real, x_real, y_real;
 
-  s_real = (s_curr - 274.16)/3.7391;
-  e_real = (e_curr - 188.553)/3.7391;
-  x_real = (x_curr - 478)/3.78889;
-  y_real = (y_curr + 209.333)/3.7444;
+  // Convert analog values to real angles
+  s_real = (s_curr - 274.16) / 3.7391;
+  e_real = (e_curr - 188.553) / 3.7391;
+  x_real = (x_curr - 478) / 3.78889;
+  y_real = (y_curr + 209.333) / 3.7444;
 
+  // Send the angles!
   Serial.print(s_real);
-  Serial.print("; ");
+  Serial.print(";");
   Serial.print(e_real);
-  Serial.print("; ");
+  Serial.print(";");
   Serial.print(x_real);
-  Serial.print("; ");
+  Serial.print(";");
   Serial.println(y_real);
 }

@@ -27,8 +27,13 @@ while arm.in_waiting == 0:
 resp = arm.readline().decode('utf-8').rstrip(";\r\n").split(";")
 
 # Convert strings to floats
-angles = np.array(resp).astype(float).tolist()
-print(angles)
+curr_angles = np.array(resp).astype(float).tolist()
+
+# 
+
+# Inverse Kinematics
+
+
 
 
 # command = f';;;;;\n'

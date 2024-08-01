@@ -275,7 +275,7 @@ def run(frame):
     conv_out2 = np.reshape(output_data[2], shapeOut2)
     yolo_outputs = [conv_out0, conv_out1, conv_out2]
     
-    # Decode output from YOLOv3
+    # Decode output from YOLOv5
     boxes, scores, classes = evaluate(yolo_outputs, image_size, class_names, anchors)
     
     #new_image = draw_boxes2(frame, boxes, scores, classes)
@@ -283,6 +283,7 @@ def run(frame):
     #print (f"Number of detected objects: {len(boxes)}")
     #print (f"Class: {(classes)}")
     #print (f"boxes: {(boxes)}")
+    return boxes, scores, classes
 
 
 cap = cv2.VideoCapture(0)

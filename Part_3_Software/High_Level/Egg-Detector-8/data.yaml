@@ -1,0 +1,14 @@
+names:
+- Egg
+- Handle
+- Strainer
+nc: 3
+roboflow:
+  license: CC BY 4.0
+  project: egg-detector-jhu1m
+  url: https://universe.roboflow.com/robot-arm-pj9te/egg-detector-jhu1m/dataset/8
+  version: 8
+  workspace: robot-arm-pj9te
+test: ../test/images
+train: Egg-Detector-8/train/images
+val: Egg-Detector-8/valid/images
